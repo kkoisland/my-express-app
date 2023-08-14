@@ -2,9 +2,28 @@ const express = require('express');
 const app = express();
 const port = 3333;
 
-app.use(express.urlencoded({ extended: true })); // urlencodedミドルウェアを使用 for req.body
+app.use(express.urlencoded({ extended: true })); // urlencodedミドルウェア、req.bodyに必要
 
-/* more example ----------------------------------------------------*/
+function displayLocalsData(req, res, next) { // ミドルウェア関数
+  console.log('res.locals.data:', res.locals.data); // res.locals.data: undefined
+    // 任意のデータをセット
+    res.locals.data = {
+      message: 'This is the data we want to share',
+      value: 42
+    };
+    console.log('res.locals.data:', res.locals.data); // res.locals.data: { message: 'This is the data we want to share', value: 42 }
+  next(); // 次のミドルウェアまたはルートハンドラに制御を渡す
+}
+
+app.use(displayLocalsData); // ミドルウェアを使用
+
+/* ルートハンドラ more example ---------------------------------------------*/
+// ミドルウェアのテスト
+app.get('/mdtest', (req, res) => {
+  // ミドルウェアでセットされたデータを表示
+  res.send(`Data from middleware: ${JSON.stringify(res.locals.data)}\n`);
+});
+
 app.get('/getData/:publicKey', (req, res) => {
   res.send(`publicKey is ${req.params.publicKey}\n`);
 });
@@ -17,11 +36,10 @@ app.get('/pass', (req, res) => {
 // command: http://localhost:3333/pass?password=akih
 // 結果: password is akih
 
-/* Basic ---------------------------------------------------------*/
-// req.body
+/* req.body ---------------------------------------------------------*/
 // POSTのコマンドの実行は、ブラウザではできない
 app.post('/submit', (req, res) => {
-  const inputData = req.body;　// req.bodyにPOSTされたデータが含まれる
+  const inputData = req.body; // req.bodyにPOSTされたデータが含まれる
   const responseText = `Received data: ${JSON.stringify(inputData)}\n` +
                       `Received data2: ${JSON.stringify(inputData.password)}\n` +
                       `Received data3: ${JSON.stringify(req.body.publicKey)}\n`;
